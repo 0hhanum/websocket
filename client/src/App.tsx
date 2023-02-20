@@ -10,6 +10,9 @@ function App() {
     socket.addEventListener("message", (message: MessageEvent) => {
       console.log(message.data);
     });
+    setTimeout(() => {
+      socket.send("hello - browser");
+    }, 3000);
   }, []);
   return (
     <>
