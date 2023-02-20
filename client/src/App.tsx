@@ -13,6 +13,7 @@ interface IForm {
 function App() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connect, setConnect] = useState(false);
+  const [messages, setMessages] = useState<string[]>([]);
   const { register, handleSubmit, reset } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = (data) => {
     socket?.send(data.message);
@@ -25,7 +26,7 @@ function App() {
       setConnect(true);
     });
     socket.addEventListener("message", (message: MessageEvent) => {
-      console.log(message.data);
+      setMessages((current) => current.concat(message.data));
     });
   }, []);
   return (
@@ -37,7 +38,11 @@ function App() {
         {connect ? (
           <div>
             <h2>Connected to Server</h2>
-            <ul></ul>
+            <ul>
+              {messages.map((message) => (
+                <li>{message}</li>
+              ))}
+            </ul>
             <form onSubmit={handleSubmit(onValid)}>
               <input
                 {...register("message", { required: true })}
