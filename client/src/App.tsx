@@ -15,7 +15,7 @@ function App() {
   const [connect, setConnect] = useState(false);
   const { register, handleSubmit, reset } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = (data) => {
-    console.log(data.message);
+    socket?.send(data.message);
     reset();
   };
   useEffect(() => {
