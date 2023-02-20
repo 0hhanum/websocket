@@ -15,7 +15,7 @@ function App() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connect, setConnect] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
-  const { register, handleSubmit, reset } = useForm<IForm>();
+  const { register, handleSubmit, resetField } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = (data) => {
     socket?.send(
       JSON.stringify({
@@ -23,7 +23,7 @@ function App() {
         nickname: data.nickname,
       })
     );
-    reset();
+    resetField("message");
   };
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:3000");
