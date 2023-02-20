@@ -1,0 +1,3 @@
+{
+  "exec": "babel-node -x .ts -- src/server.ts"
+}
