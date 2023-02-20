@@ -8,6 +8,7 @@ const Container = styled.div`
 
 interface IForm {
   message: string;
+  nickname: string;
 }
 
 function App() {
@@ -16,7 +17,12 @@ function App() {
   const [messages, setMessages] = useState<string[]>([]);
   const { register, handleSubmit, reset } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = (data) => {
-    socket?.send(data.message);
+    socket?.send(
+      JSON.stringify({
+        message: data.message,
+        nickname: data.nickname,
+      })
+    );
     reset();
   };
   useEffect(() => {
@@ -44,11 +50,19 @@ function App() {
               ))}
             </ul>
             <form onSubmit={handleSubmit(onValid)}>
-              <input
-                {...register("message", { required: true })}
-                type="text"
-                placeholder="write a message"
-              />
+              <div style={{ display: "flex" }}>
+                <input
+                  {...register("nickname", { required: true })}
+                  type="text"
+                  placeholder="choose a nickname"
+                  style={{ width: "20%", marginRight: "20px" }}
+                />
+                <input
+                  {...register("message", { required: true })}
+                  type="text"
+                  placeholder="write a message"
+                />
+              </div>
               <button>Send</button>
             </form>
           </div>
