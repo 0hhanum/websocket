@@ -12,10 +12,9 @@ const wss = new WebSocket.Server({ server }); // ws(websocket) 서버
 // 이렇게 함으로써 동일 포트에 http / ws 서버를 함께 구동
 // 필수 사항은 아니며 ws 서버만 구동해도 무관
 
-function handleConnection(socket: WebSocket, request: http.IncomingMessage) {
-  console.log(socket);
-}
-wss.on("connection", handleConnection);
+wss.on("connection", (socket: WebSocket, request: http.IncomingMessage) => {
+  socket.send("hello~");
+});
 server.listen(PORT, () =>
   console.log(`Listening on PORT: http://localhost:${PORT}`)
 );
