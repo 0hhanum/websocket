@@ -4,9 +4,12 @@ import express from "express";
 import { Server as SocketIO } from "socket.io";
 const WS_PORT: number = 3000;
 const IO_PORT: number = 3001;
-interface IMessage {
+interface IWSMessage {
   message: string;
   nickname: string;
+}
+interface IIOMessage extends IWSMessage {
+  roomName: string;
 }
 interface ISocket extends WebSocket {
   nickname: string;
@@ -31,7 +34,7 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
   socket["nickname"] = "Anonymous";
   sockets.push(socket);
   socket.on("message", (msg: MessageEvent) => {
-    const { nickname, message }: IMessage = JSON.parse(msg.toString());
+    const { nickname, message }: IWSMessage = JSON.parse(msg.toString());
     socket.nickname = nickname;
     sockets.forEach((socket) => {
       if (socket.nickname !== nickname) {
@@ -69,11 +72,13 @@ ioServer.on("connection", (socket) => {
   socket.on("disconnecting", () => {
     socket.rooms.forEach((room) => socket.to(room).emit("leaveRoom"));
   });
-  socket.on("message", ({ message, nickname }: IMessage) => {
-    socket.rooms.forEach((room) =>
-      socket.to(room).emit("message", `${nickname}: ${message}`)
-    );
-  });
+  socket.on(
+    "message",
+    ({ message, nickname, roomName }: IIOMessage, callback: () => void) => {
+      socket.to(roomName).emit("message", `${nickname}: ${message}`);
+      callback();
+    }
+  );
 });
 httpServerForWS.listen(WS_PORT, () =>
   console.log(`Listening on PORT: http://localhost:${WS_PORT}`)
