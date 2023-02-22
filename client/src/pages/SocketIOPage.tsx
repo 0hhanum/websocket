@@ -27,6 +27,12 @@ function SocketIOPage() {
       socket.on("connect", () => {
         setIsConnected(true);
       });
+      socket.on("joinRoom", () => {
+        addMessage("someone joined");
+      });
+      socket.on("leaveRoom", () => {
+        addMessage("someone left");
+      });
     } else {
       setIsConnected(true);
       setValue("nickname", nicknameState);
@@ -42,15 +48,25 @@ function SocketIOPage() {
     socket.emit("message", { message, nickname });
     resetField("message");
   };
+  function addMessage(message: string) {
+    setMessages((current) => current.concat(message));
+  }
   return (
     <>
       {connected ? (
         <div>
           <h2>
-            {nicknameState ? `HI! ${nicknameState}` : "Connected to Server"}
+            {nicknameState
+              ? `HI! ${nicknameState} | Room: ${currentRoom}`
+              : "Connected to Server"}
           </h2>
           {currentRoom ? (
             <form onSubmit={handleSubmit(onChatValid)}>
+              <ul>
+                {messages.map((message, i) => (
+                  <li key={i}>{message}</li>
+                ))}
+              </ul>
               <div style={{ display: "flex" }}>
                 <input
                   {...register("nickname", { required: true })}
