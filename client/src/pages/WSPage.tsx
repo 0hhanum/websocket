@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
-import { wsMessages } from "../atom";
+import { wsMessages, wsNickName } from "../atom";
 
 interface IForm {
   message: string;
@@ -11,12 +11,16 @@ const socket: WebSocket = new WebSocket("ws://localhost:3000");
 export function WSPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useRecoilState(wsMessages);
-  const { register, handleSubmit, resetField } = useForm<IForm>();
+  const [nicknameState, setNicknameState] = useRecoilState(wsNickName);
+  const { register, handleSubmit, resetField, setValue } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = ({ message, nickname }) => {
+    if (nickname !== nicknameState) {
+      setNicknameState(nickname);
+    }
     socket?.send(
       JSON.stringify({
-        message: message,
-        nickname: nickname,
+        message,
+        nickname,
       })
     );
     setMessages((current) => current.concat(`Me: ${message}`));
@@ -27,18 +31,21 @@ export function WSPage() {
       socket.addEventListener("open", () => {
         setIsConnected(true);
       });
-      socket.addEventListener("message", (message: MessageEvent) => {
-        setMessages((current) => current.concat(`someone: ${message.data}`));
+      socket.addEventListener("message", ({ data }: MessageEvent) => {
+        setMessages((current) => current.concat(data));
       });
     } else {
       setIsConnected(true);
+      setValue("nickname", nicknameState);
     }
   }, [socket]);
   return (
     <>
       {isConnected ? (
         <div>
-          <h2>Connected to Server</h2>
+          <h2>
+            {nicknameState ? `HI! ${nicknameState}` : "Connected to Server"}
+          </h2>
           <ul>
             {messages.map((message, i) => (
               <li key={i}>{message}</li>
@@ -53,7 +60,9 @@ export function WSPage() {
                 style={{ width: "20%", marginRight: "20px" }}
               />
               <input
-                {...register("message", { required: true })}
+                {...register("message", {
+                  required: true,
+                })}
                 type="text"
                 placeholder="write a message"
               />
