@@ -33,6 +33,9 @@ function SocketIOPage() {
       socket.on("leaveRoom", () => {
         addMessage("someone left");
       });
+      socket.on("message", (message: string) => {
+        addMessage(message);
+      });
     } else {
       setIsConnected(true);
       setValue("nickname", nicknameState);
@@ -46,6 +49,7 @@ function SocketIOPage() {
       setNicknameState(nickname);
     }
     socket.emit("message", { message, nickname });
+    addMessage(`Me: ${message}`);
     resetField("message");
   };
   function addMessage(message: string) {
