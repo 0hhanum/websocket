@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useRecoilState } from "recoil";
+import { wsMessages } from "../atom";
 
 interface IForm {
   message: string;
@@ -8,7 +10,7 @@ interface IForm {
 const socket: WebSocket = new WebSocket("ws://localhost:3000");
 export function WSPage() {
   const [isConnected, setIsConnected] = useState(false);
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useRecoilState(wsMessages);
   const { register, handleSubmit, resetField } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = ({ message, nickname }) => {
     socket?.send(
