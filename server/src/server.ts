@@ -13,6 +13,7 @@ interface ISocket extends WebSocket {
 }
 interface IIORoomPayload {
   roomName: string;
+  callback: () => void;
 }
 const app: express.Application = express();
 
@@ -57,8 +58,9 @@ ioServer.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("IO disconnected --- X");
   });
-  socket.on("room", ({ roomName }: IIORoomPayload) => {
-    console.log(roomName);
+  socket.on("enterRoom", ({ roomName, callback }: IIORoomPayload) => {
+    socket.join(roomName);
+    callback();
   });
 });
 httpServerForWS.listen(WS_PORT, () =>
