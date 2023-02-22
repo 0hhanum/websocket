@@ -11,6 +11,9 @@ interface IData {
 interface ISocket extends WebSocket {
   nickname: string;
 }
+interface IIORoomPayload {
+  roomName: string;
+}
 const app: express.Application = express();
 
 app.get("/", (req, res) => res.sendStatus(200));
@@ -42,7 +45,7 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
   });
 });
 
-const ioServer = new SocketIO(httpServerForIO, {
+const ioServer: SocketIO = new SocketIO(httpServerForIO, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
@@ -51,6 +54,12 @@ const ioServer = new SocketIO(httpServerForIO, {
 });
 ioServer.on("connection", (socket) => {
   console.log("IO connected --- O");
+  socket.on("disconnect", () => {
+    console.log("IO disconnected --- X");
+  });
+  socket.on("room", ({ roomName }: IIORoomPayload) => {
+    console.log(roomName);
+  });
 });
 httpServerForWS.listen(WS_PORT, () =>
   console.log(`Listening on PORT: http://localhost:${WS_PORT}`)
