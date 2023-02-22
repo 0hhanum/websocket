@@ -42,6 +42,9 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
 });
 
 const ioServer = new SocketIO(httpServer);
+ioServer.on("connection", (socket) => {
+  console.log(socket);
+});
 httpServer.listen(PORT, () =>
   console.log(`Listening on PORT: http://localhost:${PORT}`)
 );

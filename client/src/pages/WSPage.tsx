@@ -5,9 +5,9 @@ interface IForm {
   message: string;
   nickname: string;
 }
-function WSPage() {
-  const [socket, setSocket] = useState<WebSocket | null>(null);
-  const [connect, setConnect] = useState(false);
+const socket: WebSocket = new WebSocket("ws://localhost:3000");
+export function WSPage() {
+  const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
   const { register, handleSubmit, resetField } = useForm<IForm>();
   const onValid: SubmitHandler<IForm> = ({ message, nickname }) => {
@@ -21,18 +21,20 @@ function WSPage() {
     resetField("message");
   };
   useEffect(() => {
-    const socket: WebSocket = new WebSocket("ws://localhost:3000");
-    setSocket(socket);
-    socket.addEventListener("open", () => {
-      setConnect(true);
-    });
-    socket.addEventListener("message", (message: MessageEvent) => {
-      setMessages((current) => current.concat(`someone: ${message.data}`));
-    });
-  }, []);
+    if (socket.readyState !== 1) {
+      socket.addEventListener("open", () => {
+        setIsConnected(true);
+      });
+      socket.addEventListener("message", (message: MessageEvent) => {
+        setMessages((current) => current.concat(`someone: ${message.data}`));
+      });
+    } else {
+      setIsConnected(true);
+    }
+  }, [socket]);
   return (
     <>
-      {connect ? (
+      {isConnected ? (
         <div>
           <h2>Connected to Server</h2>
           <ul>

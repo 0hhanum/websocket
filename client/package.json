@@ -10,13 +10,15 @@
   },
   "dependencies": {
     "@types/react-router-dom": "^5.3.3",
-    "@types/socket.io": "^3.0.2",
+    "@types/recoil": "^0.0.9",
+    "@types/socket.io-client": "^3.0.0",
     "@types/styled-components": "^5.1.26",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.43.1",
     "react-router-dom": "^6.8.1",
-    "socket.io": "^4.6.1",
+    "recoil": "^0.7.6",
+    "socket.io-client": "^4.6.1",
     "styled-components": "^5.3.6"
   },
   "devDependencies": {
