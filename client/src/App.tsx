@@ -1,18 +1,42 @@
-import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, Link, useMatch } from "react-router-dom";
 import styled from "styled-components";
-import WebSocket from "./pages/WebSocket";
 
 const Container = styled.div`
   padding: 20px 80px;
 `;
-
+const Nav = styled.nav`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  h1 {
+    margin: 0;
+  }
+  margin-bottom: 60px;
+`;
+const NavUl = styled.ul`
+  li {
+    margin-left: 20px;
+  }
+  li.active {
+    a {
+      color: yellow;
+    }
+  }
+`;
 function App() {
   return (
     <Container>
-      <nav>
-        <h1>WebSocket</h1>
-      </nav>
+      <Nav>
+        <h1>RealTime Web</h1>
+        <NavUl>
+          <li className={useMatch("/") ? "active" : "normal"}>
+            <Link to="/">WebSocket</Link>
+          </li>
+          <li className={useMatch("/socket-io") ? "active" : "normal"}>
+            <Link to="/socket-io">Socket.io</Link>
+          </li>
+        </NavUl>
+      </Nav>
       <main>
         <Outlet />
       </main>

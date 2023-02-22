@@ -5,7 +5,7 @@ interface IForm {
   message: string;
   nickname: string;
 }
-function WSPage() {
+function SocketIOPage() {
   const [socket, setSocket] = useState<WebSocket | null>(null);
   const [connect, setConnect] = useState(false);
   const [messages, setMessages] = useState<string[]>([]);
@@ -36,8 +36,8 @@ function WSPage() {
         <div>
           <h2>Connected to Server</h2>
           <ul>
-            {messages.map((message, i) => (
-              <li key={i}>{message}</li>
+            {messages.map((message) => (
+              <li>{message}</li>
             ))}
           </ul>
           <form onSubmit={handleSubmit(onValid)}>
@@ -61,4 +61,4 @@ function WSPage() {
     </>
   );
 }
-export default WSPage;
+export default SocketIOPage;

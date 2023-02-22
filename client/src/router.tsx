@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "./App";
+import SocketIOPage from "./pages/SocketIOPage";
 import WSPage from "./pages/WSPage";
 
 export const router = createBrowserRouter([
@@ -10,6 +11,10 @@ export const router = createBrowserRouter([
       {
         path: "/",
         element: <WSPage />,
+      },
+      {
+        path: "/socket-io",
+        element: <SocketIOPage />,
       },
     ],
   },

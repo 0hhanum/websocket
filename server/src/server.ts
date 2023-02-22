@@ -37,6 +37,7 @@ wss.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
   });
   socket.on("close", () => {
     console.log("disconnected --- X");
+    // TODO remove socket from sockets
   });
 });
 
