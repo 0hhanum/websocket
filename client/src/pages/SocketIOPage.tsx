@@ -50,11 +50,11 @@ function SocketIOPage() {
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
   useEffect(() => {
     if (!isHookAdded) {
-      socket.on("joinRoom", () => {
-        addMessage("someone joined");
+      socket.on("joinRoom", (roomMemberCount: number) => {
+        addMessage(`someone joined - current participants: ${roomMemberCount}`);
       });
-      socket.on("leaveRoom", () => {
-        addMessage("someone left");
+      socket.on("leaveRoom", (roomMemberCount: number) => {
+        addMessage(`someone left - current participants: ${roomMemberCount}`);
       });
       socket.on("message", addMessage);
       socket.on("roomChanged", (rooms: string[]) => {
@@ -69,8 +69,12 @@ function SocketIOPage() {
     }
   }, [socket]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
-    socket.emit("enterRoom", { roomName }, () => setCurrentRoom(roomName)); // can send object & eventName!
-    addMessage(`enter to room ${roomName}`);
+    socket.emit("enterRoom", { roomName }, (roomMemberCount: number) => {
+      addMessage(
+        `enter to room ${roomName} - current participants: ${roomMemberCount}`
+      );
+      setCurrentRoom(roomName);
+    }); // can send object & eventName!
   };
   const onChatValid: SubmitHandler<IChatForm> = ({ message, nickname }) => {
     if (nickname !== nicknameState) {

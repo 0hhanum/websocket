@@ -69,6 +69,14 @@ function getPublicRooms() {
   });
   return publicRooms;
 }
+function getRoomParticipantsCount(roomName: string) {
+  const {
+    sockets: {
+      adapter: { rooms },
+    },
+  } = ioServer;
+  return rooms.get(roomName)?.size || 0;
+}
 ioServer.on("connection", (socket) => {
   console.log("IO connected --- O");
   ioServer.sockets.emit("roomChanged", getPublicRooms());
@@ -78,16 +86,21 @@ ioServer.on("connection", (socket) => {
   });
   socket.on(
     "enterRoom",
-    ({ roomName }: IIORoomPayload, callback: () => void) => {
+    (
+      { roomName }: IIORoomPayload,
+      callback: (roomMemberCount: number) => void
+    ) => {
       socket.join(roomName);
-      callback();
-      socket.to(roomName).emit("joinRoom");
+      callback(getRoomParticipantsCount(roomName));
+      socket.to(roomName).emit("joinRoom", getRoomParticipantsCount(roomName));
       ioServer.sockets.emit("roomChanged", getPublicRooms());
     }
   );
   // before completely disconnect
   socket.on("disconnecting", () => {
-    socket.rooms.forEach((room) => socket.to(room).emit("leaveRoom"));
+    socket.rooms.forEach((room) =>
+      socket.to(room).emit("leaveRoom", getRoomParticipantsCount(room) - 1)
+    );
   });
   socket.on(
     "message",
@@ -101,14 +114,24 @@ ioServer.on("connection", (socket) => {
     (targetRoomName: string, currentRoomName: string, callback: () => void) => {
       socket.leave(currentRoomName);
       socket.join(targetRoomName);
-      socket.to(targetRoomName).emit("joinRoom");
-      socket.to(currentRoomName).emit("leaveRoom");
+      socket
+        .to(targetRoomName)
+        .emit("joinRoom", getRoomParticipantsCount(targetRoomName));
+      socket
+        .to(currentRoomName)
+        .emit("leaveRoom", getRoomParticipantsCount(currentRoomName) - 1);
       callback();
     }
   );
   socket.on("getRooms", (callback: (rooms: string[]) => void) => {
     callback(getPublicRooms());
   });
+  socket.on(
+    "getRoomParticipantsCount",
+    (roomName, callback: (roomMemberCount: number) => void) => {
+      callback(getRoomParticipantsCount(roomName));
+    }
+  );
 });
 httpServerForWS.listen(WS_PORT, () =>
   console.log(`Listening on PORT: http://localhost:${WS_PORT}`)
