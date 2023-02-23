@@ -16,3 +16,7 @@ export const ioNickName = atom<string>({
   key: "ioNickName",
   default: "",
 });
+export const ioCurrentRoom = atom<string>({
+  key: "ioCurrentRoom",
+  default: "",
+});

@@ -55,10 +55,26 @@ const ioServer: SocketIO = new SocketIO(httpServerForIO, {
     credentials: true,
   },
 });
+function getPublicRooms() {
+  const {
+    sockets: {
+      adapter: { rooms, sids: socketIds },
+    },
+  } = ioServer;
+  const publicRooms: string[] = [];
+  rooms.forEach((_, key) => {
+    if (socketIds.get(key) === undefined) {
+      publicRooms.push(key);
+    }
+  });
+  return publicRooms;
+}
 ioServer.on("connection", (socket) => {
   console.log("IO connected --- O");
+  ioServer.sockets.emit("roomChanged", getPublicRooms());
   socket.on("disconnect", () => {
     console.log("IO disconnected --- X");
+    ioServer.sockets.emit("roomChanged", getPublicRooms());
   });
   socket.on(
     "enterRoom",
@@ -66,6 +82,7 @@ ioServer.on("connection", (socket) => {
       socket.join(roomName);
       callback();
       socket.to(roomName).emit("joinRoom");
+      ioServer.sockets.emit("roomChanged", getPublicRooms());
     }
   );
   // before completely disconnect

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { io } from "socket.io-client";
-import { ioMessages, ioNickName } from "../atom";
+import { ioCurrentRoom, ioMessages, ioNickName } from "../atom";
 
 interface IRoomForm {
   roomName: string;
@@ -15,9 +15,10 @@ const socket = io("http://localhost:3001", {
   withCredentials: true,
 });
 function SocketIOPage() {
-  const [currentRoom, setCurrentRoom] = useState<string | null>(null);
+  const [rooms, setRooms] = useState<string[]>([]);
   const [connected, setIsConnected] = useState(false);
   const [messages, setMessages] = useRecoilState(ioMessages);
+  const [currentRoom, setCurrentRoom] = useRecoilState(ioCurrentRoom);
   const [nicknameState, setNicknameState] = useRecoilState(ioNickName);
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
@@ -65,11 +66,13 @@ function SocketIOPage() {
           </h2>
           {currentRoom ? (
             <form onSubmit={handleSubmit(onChatValid)}>
-              <ul>
-                {messages.map((message, i) => (
-                  <li key={i}>{message}</li>
-                ))}
-              </ul>
+              <section>
+                <ul>
+                  {messages.map((message, i) => (
+                    <li key={i}>{message}</li>
+                  ))}
+                </ul>
+              </section>
               <div style={{ display: "flex" }}>
                 <input
                   {...register("nickname", { required: true })}
