@@ -96,6 +96,9 @@ ioServer.on("connection", (socket) => {
       callback();
     }
   );
+  socket.on("getRooms", (callback: (rooms: string[]) => void) => {
+    callback(getPublicRooms());
+  });
 });
 httpServerForWS.listen(WS_PORT, () =>
   console.log(`Listening on PORT: http://localhost:${WS_PORT}`)

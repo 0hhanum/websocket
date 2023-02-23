@@ -3,7 +3,13 @@ import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { io } from "socket.io-client";
 import styled from "styled-components";
-import { ioCurrentRoom, ioMessages, ioNickName } from "../atom";
+import {
+  ioCurrentRoom,
+  ioIsHookAdded,
+  ioMessages,
+  ioNickName,
+  ioRooms,
+} from "../atom";
 
 interface IRoomForm {
   roomName: string;
@@ -12,6 +18,10 @@ interface IChatForm {
   message: string;
   nickname: string;
 }
+const Room = styled.li<{ isActive: boolean }>`
+  cursor: pointer;
+  color: ${(props) => (props.isActive ? "yellow" : "var(--color)")};
+`;
 const Section = styled.section`
   display: grid;
   grid-template-columns: 1fr 3fr;
@@ -22,6 +32,7 @@ const Section = styled.section`
     height: 50vh;
     margin: 0;
     overflow-y: scroll;
+    padding: 20px;
   }
   margin: 20px 0;
 `;
@@ -29,19 +40,16 @@ const socket = io("http://localhost:3001", {
   withCredentials: true,
 });
 function SocketIOPage() {
-  const [rooms, setRooms] = useState<string[]>([]);
-  const [connected, setIsConnected] = useState(false);
   const [messages, setMessages] = useRecoilState(ioMessages);
   const [currentRoom, setCurrentRoom] = useRecoilState(ioCurrentRoom);
   const [nicknameState, setNicknameState] = useRecoilState(ioNickName);
+  const [rooms, setRooms] = useRecoilState(ioRooms);
+  const [isHookAdded, setIsHookAdded] = useRecoilState(ioIsHookAdded);
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
   useEffect(() => {
-    if (!socket.connected) {
-      socket.on("connect", () => {
-        setIsConnected(true);
-      });
+    if (!isHookAdded) {
       socket.on("joinRoom", () => {
         addMessage("someone joined");
       });
@@ -49,8 +57,14 @@ function SocketIOPage() {
         addMessage("someone left");
       });
       socket.on("message", addMessage);
+      socket.on("roomChanged", (rooms: string[]) => {
+        setRooms(rooms);
+      });
+      setIsHookAdded(true);
     } else {
-      setIsConnected(true);
+      if (rooms.length === 0) {
+        socket.emit("getRooms", setRooms);
+      }
       setValue("nickname", nicknameState);
     }
   }, [socket]);
@@ -71,13 +85,19 @@ function SocketIOPage() {
   }
   return (
     <>
-      {connected ? (
+      {socket.connected ? (
         <div>
           {currentRoom ? (
             <form onSubmit={handleSubmit(onChatValid)}>
               <Section>
                 <section>
-                  <ul></ul>
+                  <ul>
+                    {rooms.map((room) => (
+                      <Room key={room} isActive={room === currentRoom}>
+                        {room}
+                      </Room>
+                    ))}
+                  </ul>
                 </section>
                 <section>
                   <ul>
@@ -99,6 +119,7 @@ function SocketIOPage() {
                     required: true,
                   })}
                   type="text"
+                  autoComplete="off"
                   placeholder="write a message"
                 />
               </div>
@@ -115,7 +136,9 @@ function SocketIOPage() {
             </form>
           )}
         </div>
-      ) : null}
+      ) : (
+        <h2>Something went wrong. Refresh the browser -_-</h2>
+      )}
     </>
   );
 }
