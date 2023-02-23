@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { io } from "socket.io-client";
+import styled from "styled-components";
 import { ioCurrentRoom, ioMessages, ioNickName } from "../atom";
 
 interface IRoomForm {
@@ -11,6 +12,19 @@ interface IChatForm {
   message: string;
   nickname: string;
 }
+const Section = styled.section`
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  gap: 20px;
+  section {
+    border: 0.5px solid var(--form-element-border-color);
+    border-radius: 5px;
+    height: 50vh;
+    margin: 0;
+    overflow-y: scroll;
+  }
+  margin: 20px 0;
+`;
 const socket = io("http://localhost:3001", {
   withCredentials: true,
 });
@@ -59,20 +73,20 @@ function SocketIOPage() {
     <>
       {connected ? (
         <div>
-          <h2>
-            {nicknameState
-              ? `HI! ${nicknameState} | Room: ${currentRoom}`
-              : "Connected to Server"}
-          </h2>
           {currentRoom ? (
             <form onSubmit={handleSubmit(onChatValid)}>
-              <section>
-                <ul>
-                  {messages.map((message, i) => (
-                    <li key={i}>{message}</li>
-                  ))}
-                </ul>
-              </section>
+              <Section>
+                <section>
+                  <ul></ul>
+                </section>
+                <section>
+                  <ul>
+                    {messages.map((message, i) => (
+                      <li key={i}>{message}</li>
+                    ))}
+                  </ul>
+                </section>
+              </Section>
               <div style={{ display: "flex" }}>
                 <input
                   {...register("nickname", { required: true })}

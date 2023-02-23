@@ -26,17 +26,19 @@ const NavUl = styled.ul`
 function App() {
   return (
     <Container>
-      <Nav>
-        <h1>RealTime Web</h1>
-        <NavUl>
-          <li className={useMatch("/") ? "active" : "normal"}>
-            <Link to="/">WebSocket</Link>
-          </li>
-          <li className={useMatch("/socket-io") ? "active" : "normal"}>
-            <Link to="/socket-io">Socket.io</Link>
-          </li>
-        </NavUl>
-      </Nav>
+      <header>
+        <Nav>
+          <h1>RealTime Web</h1>
+          <NavUl>
+            <li className={useMatch("/") ? "active" : "normal"}>
+              <Link to="/">WebSocket</Link>
+            </li>
+            <li className={useMatch("/socket-io") ? "active" : "normal"}>
+              <Link to="/socket-io">Socket.io</Link>
+            </li>
+          </NavUl>
+        </Nav>
+      </header>
       <main>
         <Outlet />
       </main>
