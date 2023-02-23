@@ -96,6 +96,16 @@ ioServer.on("connection", (socket) => {
       callback();
     }
   );
+  socket.on(
+    "moveRoom",
+    (targetRoomName: string, currentRoomName: string, callback: () => void) => {
+      socket.leave(currentRoomName);
+      socket.join(targetRoomName);
+      socket.to(targetRoomName).emit("joinRoom");
+      socket.to(currentRoomName).emit("leaveRoom");
+      callback();
+    }
+  );
   socket.on("getRooms", (callback: (rooms: string[]) => void) => {
     callback(getPublicRooms());
   });

@@ -70,6 +70,7 @@ function SocketIOPage() {
   }, [socket]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
     socket.emit("enterRoom", { roomName }, () => setCurrentRoom(roomName)); // can send object & eventName!
+    addMessage(`enter to room ${roomName}`);
   };
   const onChatValid: SubmitHandler<IChatForm> = ({ message, nickname }) => {
     if (nickname !== nicknameState) {
@@ -79,6 +80,13 @@ function SocketIOPage() {
       addMessage(`Me: ${message}`)
     );
     resetField("message");
+  };
+  const moveRoom = (targetRoomName: string) => {
+    socket.emit("moveRoom", targetRoomName, currentRoom, () => {
+      setCurrentRoom(targetRoomName);
+      setMessages([]);
+      addMessage(`enter to room ${targetRoomName}`);
+    });
   };
   function addMessage(message: string) {
     setMessages((current) => current.concat(message));
@@ -93,7 +101,11 @@ function SocketIOPage() {
                 <section>
                   <ul>
                     {rooms.map((room) => (
-                      <Room key={room} isActive={room === currentRoom}>
+                      <Room
+                        key={room}
+                        isActive={room === currentRoom}
+                        onClick={() => moveRoom(room)}
+                      >
                         {room}
                       </Room>
                     ))}

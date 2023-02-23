@@ -31,10 +31,10 @@ function App() {
           <h1>RealTime Web</h1>
           <NavUl>
             <li className={useMatch("/") ? "active" : "normal"}>
-              <Link to="/">WebSocket</Link>
+              <Link to="/">Socket.io</Link>
             </li>
-            <li className={useMatch("/socket-io") ? "active" : "normal"}>
-              <Link to="/socket-io">Socket.io</Link>
+            <li className={useMatch("/ws") ? "active" : "normal"}>
+              <Link to="/ws">WebSocket</Link>
             </li>
           </NavUl>
         </Nav>
