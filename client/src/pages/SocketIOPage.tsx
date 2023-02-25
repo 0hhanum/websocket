@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { io } from "socket.io-client";
@@ -39,6 +39,28 @@ const Section = styled.section`
     }
   }
   margin: 20px 0;
+`;
+const VideoSection = styled.section`
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  div {
+    display: flex;
+    width: 100%;
+    justify-content: space-around;
+    height: 40px;
+    button {
+      width: 45%;
+      height: 90%;
+      border-radius: 30px;
+    }
+  }
+  div:first-child {
+    height: 85%;
+  }
+`;
+const VideoCtrlBtn = styled.button<{ isActive: boolean }>`
+  background-color: ${(props) => (props.isActive ? "transparent" : "red")};
 `;
 const socket = io("http://localhost:3001", {
   withCredentials: true,
@@ -119,10 +141,22 @@ function SocketIOPage() {
                     ))}
                   </ul>
                 </section>
-                <section>
-                  <VideoComponent myVideo={true} />
-                  <VideoComponent myVideo={false} />
-                </section>
+                <VideoSection>
+                  <div>
+                    <VideoComponent myVideo={true} />
+                    <VideoComponent myVideo={false} />
+                  </div>
+                  <div>
+                    <VideoCtrlBtn
+                      isActive={true}
+                      className="autio"
+                    ></VideoCtrlBtn>
+                    <VideoCtrlBtn
+                      isActive={true}
+                      className="camera"
+                    ></VideoCtrlBtn>
+                  </div>
+                </VideoSection>
                 <section>
                   <ul>
                     {messages.map((message, i) => (

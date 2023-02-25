@@ -1,8 +1,14 @@
 import { useEffect, useRef } from "react";
+import styled from "styled-components";
 
 interface IProps {
   myVideo: boolean;
 }
+const Video = styled.video`
+  object-fit: cover;
+  border-radius: 5px;
+  width: 45%;
+`;
 export default function VideoComponent({ myVideo }: IProps) {
   const videoRefs = useRef<HTMLVideoElement>(null);
   useEffect(() => {
@@ -22,5 +28,5 @@ export default function VideoComponent({ myVideo }: IProps) {
       console.log(e);
     }
   }, [videoRefs]);
-  return <video ref={videoRefs} autoPlay playsInline></video>;
+  return <Video ref={videoRefs} autoPlay playsInline />;
 }
