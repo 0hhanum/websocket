@@ -10,6 +10,7 @@ import {
   ioNickName,
   ioRooms,
 } from "../atom";
+import VideoComponent from "../components/VideoComponent";
 
 interface IRoomForm {
   roomName: string;
@@ -24,15 +25,18 @@ const Room = styled.li<{ isActive: boolean }>`
 `;
 const Section = styled.section`
   display: grid;
-  grid-template-columns: 1fr 3fr;
+  grid-template-columns: 1fr 1.5fr 1.5fr;
   gap: 20px;
   section {
     border: 0.5px solid var(--form-element-border-color);
     border-radius: 5px;
     height: 50vh;
     margin: 0;
-    overflow-y: scroll;
     padding: 20px;
+    :first-child,
+    :last-child {
+      overflow-y: scroll;
+    }
   }
   margin: 20px 0;
 `;
@@ -114,6 +118,10 @@ function SocketIOPage() {
                       </Room>
                     ))}
                   </ul>
+                </section>
+                <section>
+                  <VideoComponent myVideo={true} />
+                  <VideoComponent myVideo={false} />
                 </section>
                 <section>
                   <ul>

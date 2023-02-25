@@ -11,7 +11,7 @@ const Nav = styled.nav`
   h1 {
     margin: 0;
   }
-  margin-bottom: 60px;
+  margin-bottom: 40px;
 `;
 const NavUl = styled.ul`
   li {
