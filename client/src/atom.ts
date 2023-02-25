@@ -28,3 +28,11 @@ export const ioIsHookAdded = atom<boolean>({
   key: "ioIsHookAdded",
   default: false,
 });
+export const ioIsMuted = atom<boolean>({
+  key: "ioIsMuted",
+  default: false,
+});
+export const ioIsCameraOff = atom<boolean>({
+  key: "isCameraOff",
+  default: false,
+});

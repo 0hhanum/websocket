@@ -5,7 +5,9 @@ import { io } from "socket.io-client";
 import styled from "styled-components";
 import {
   ioCurrentRoom,
+  ioIsCameraOff,
   ioIsHookAdded,
+  ioIsMuted,
   ioMessages,
   ioNickName,
   ioRooms,
@@ -49,18 +51,24 @@ const VideoSection = styled.section`
     width: 100%;
     justify-content: space-around;
     height: 40px;
-    button {
-      width: 45%;
-      height: 90%;
-      border-radius: 30px;
-    }
   }
   div:first-child {
     height: 85%;
   }
 `;
-const VideoCtrlBtn = styled.button<{ isActive: boolean }>`
-  background-color: ${(props) => (props.isActive ? "transparent" : "red")};
+const VideoCtrlBtn = styled.button<{ isOff: boolean }>`
+  background-color: ${(props) => (props.isOff ? "red" : "transparent")};
+  border-color: ${(props) => (props.isOff ? "red" : "var(--border-color)")};
+  width: 45%;
+  height: 100%;
+  border-radius: 30px;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  align-items: center;
+  img {
+    height: 25px;
+  }
 `;
 const socket = io("http://localhost:3001", {
   withCredentials: true,
@@ -71,6 +79,9 @@ function SocketIOPage() {
   const [nicknameState, setNicknameState] = useRecoilState(ioNickName);
   const [rooms, setRooms] = useRecoilState(ioRooms);
   const [isHookAdded, setIsHookAdded] = useRecoilState(ioIsHookAdded);
+  const [isMuted, setIsMuted] = useRecoilState(ioIsMuted);
+  const [isCameraOff, setIsCameraOff] = useRecoilState(ioIsCameraOff);
+
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
@@ -148,13 +159,27 @@ function SocketIOPage() {
                   </div>
                   <div>
                     <VideoCtrlBtn
-                      isActive={true}
-                      className="autio"
-                    ></VideoCtrlBtn>
+                      isOff={isMuted}
+                      className="audio"
+                      onClick={() => setIsMuted((current) => !current)}
+                    >
+                      {isMuted ? (
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAeCAYAAAA7MK6iAAAACXBIWXMAAAsTAAALEwEAmpwYAAABVUlEQVR4nL3WsUoDMRzH8UxODkUw0ofwHdTFQZwUXHyB9hUERVzq8/gI1qHQQXRwVlAHQR3cKnzl7/0LIU160UvyW9oc13zuf9f/JcYYY4ABYE3NAEOa3FfFAatoEg6sAJfAC/AMjORYcZwG8jP6FywB1oE7negB6JtAtFI/r6ZLSMCJpBOcgheD2/Ci8DK8OBzDq8CRVqsDByqvVvFWoPIoDNwA4xzwN3DcVrlzfp47QJOZMw5WXgrGO7ZQeXEYOIpUbnPDXzrXqo6fIs9c+nxTv3/kgG91sm1nWZxFKn/Tz2kO+EInu3I2AoI/AvsBXHKWA94APnXCk1w7maQAh9rPv5UDO/LMgR6wC+yVxA+Ad79/530uF1cSt8C5/HkcdAKcAmveeXnxedr6NXUP9+ekvCiy4DSrTlsWVqXOtx0YJ8DXkd/aYs884cJdfFgNdvCBDH4Ai2FbYGf3JOEAAAAASUVORK5CYII=" />
+                      ) : (
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAADVklEQVR4nO2ay0tVURTGLyR5Ba3IigwdZFBZWlDRIKp/IGpYUVnT3jTL/oFKa2aPQTRJiSArmvTAamAPkiKMrLCXYdADJIJelNgvFn0XNgfr3uPZ53QsP9gga9/1rbXOXnuvfdYxk/EMYBqwA7gMvAK+adjflzRXkUkrgAnAQeAr+fEFOGA6mTQBmAs8dRxtBzYDdcBkjTrJrji/e2K6mTQAqAU+yLFuYEkBOkuBh9Ix3dpkvP0NgEnASzl0ESgLoVumPWPoBcozfwvAETlyDygdhn4p0CWOQ/F4md+JGcAAMAgsiMCzCPghrmq/XhbmwB49yXMeuM6La7cf78IZvyXj6zxwbRDXDT/ehTP+TsZneuCaLa43frwr3HCR9oZhvAe+8eIaBMb48bIww9k8lduq+4oh9NYA3/PoZkdCIKt170plINm08WX+90CGwugeIc4VAZqBo0mnFr/eWZqi8ruG7Hbam89wDIH0unbjDiS2PUKKAwlVR0g4kH8mtbIjKZBuoD/pSyPQDzyIyu8auqq3OPdpvZXxWR74a8T12pGVSNYeld81dFKk0x3ZTcnWe+CvF9f1wKu0oTUqv2tol0jrk3rVBTZJtjMqf7ABZ2hzZNVO82FhBO7FSlurL+6Kn5XNGh8xuAafAx/dzQ0clrGuYbaDrLd1XxzNgfbrJ+te+owhR75NBvc6snIdkajZFqZBN06NbsMLYKIz1yj5ljgCKdFJ9RmoDKRdrmX6CFhWANdy4LF0Prj9X6BKTe43sd2EgbUy3gGMdeRz1JDO4RqwFZgHTNGYL5nN5dBjug5PsbWENLc6liAcY60ydGyIotakp5kPtqr7g8UUOK75lliDcHK7MxeMuzKar9B+ugD0OR96+iSzVZka0Cl2grhtNmIPxDlV7jhpVhmBq8pJp04fV57hrEyLHLB02hfmC5QeRqOTiifCnHreYVcUuyPJGTv724CNVtwCd7OsiqhV7DP6LdKN3D/2Ajm5XUUziH6NIJ5pLyXX/gkD1ZWGwBFrI4cG98hNNQi8KP21BlxUjAaSNoyuSNowYlYEWAXcLaBrGAZW4TsK+c8JX0GsJF4M2Lf3JAKxlUCd8iKPvJZ+p8R92hfvnwzm6936QE8SgbxPYHSFdewnE1TvQAP96fIAAAAASUVORK5CYII=" />
+                      )}
+                    </VideoCtrlBtn>
                     <VideoCtrlBtn
-                      isActive={true}
+                      isOff={isCameraOff}
                       className="camera"
-                    ></VideoCtrlBtn>
+                      onClick={() => setIsCameraOff((current) => !current)}
+                    >
+                      {isCameraOff ? (
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAACDUlEQVR4nO3ZMa9MQRjG8b2JRnQSsldCQqMQH4ACJSWlSquRawsSfACND6CT6JSiIxEaNHKJBLVWSBAiIT+ZNZs91l1nd2fO2Vk5T7V79n3nzP88uzPzvtvDc7xEv7fKwgu/9XqlYbAbryLMW+zprap0MIVK50yh0jlTgHASD/AZV+K1ftxfmtRXPMM5rKVCXNviBhdahBnp9sIw0Ymgb9jYanefgMl6AsA6Lsb7B51fdKDwdQraqIlrDCaOP4hjv5kzb9sQHp/iALUTa8GZkXbMEL+GM6P5hAtDlXA2M9Y/HxCO4HElfn6QJp1RA4LDuFeJe5cE0pQzpoBgL27iR/z8Ay5jezJIEzAmQLAT1ysr2vcItGsyJwkkN4yxDsQn/jG+/4k72D8tJxkk52/GWO8rr+/iUF1OFpBczvhTT3F81pxsIDmcMdbZeXOygqQ6Y6z+0kFSYJQGsiiMEkEWgVEqyLwwSgaZB0bpILMuzUpaflOc8feGeKJIkDpnlHBEyeGMZR8ac8FY5jE+89dsWmG1D7eiM6PC6lK2wqoBmPZL3YZhDtbEH8OTSvwQJLRIg9bbm3p6CWCLdtCjmDxob9r56hmVBl2gEleGQdvOxMbc1bDc9lKLM9xQho7mgDmNh/jS8uRDy/Y+TrXZa25Vun/OCpXOmUKlc6ZQ+c+c6Vf2mc1lzydJEWYz1Pe/AHHCO8jpaavTAAAAAElFTkSuQmCC"></img>
+                      ) : (
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAABZ0lEQVR4nO2ZMU4CQRSGh8SQUNqYQGzsPYCtNTSEU1jZgLQmWngFr2Cr7ZJQwgU4wPYWYAwkkI8MeRtJFNllXDIzvq/aZffN/P++2dmZhzGKoiiKonwBtIAE+OC4zKTfpnEFeMQPHlwzYZkDXaDu/GSK9V8HetI/B2cGGGzCofvnKovpuBMdScG4E+DGHkylgaNm4gdBDdExzXl/BWgDExtkf9hgPICcWoArYJjdH5wR4BJ43dKfBmUEOAeegWU2/IB7oBaEEeAUeAI+5dJCDJ19i/HRCFAFboF3OV8BL8DFrhhfjaRbx2/23dgX46sRywi4zhvjq5GO/U4UifHSiDkkRo2UAJoRdGiVArENLWKZfoVxDB/ENJYlSjWKRaOJZRlv9m+sZkFtrKLb6uYtPkRTDkqkgV75cn8V1nct0DWlgblU+xrlyd2Zib7MSDgVs23xmNCL2BmSmUSmtjD/VlAURVGU/84aBH4Iye2/kp8AAAAASUVORK5CYII="></img>
+                      )}
+                    </VideoCtrlBtn>
                   </div>
                 </VideoSection>
                 <section>
