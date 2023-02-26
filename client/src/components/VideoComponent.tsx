@@ -29,7 +29,8 @@ export default function VideoComponent({ myVideo }: IProps) {
   const isCameraOff = useRecoilValue(ioIsCameraOff);
   const stream = useRecoilValue(ioStream);
   const peerStream = useRecoilValue(ioPeerStream);
-
+  const [ready, setReady] = useState(false);
+  console.log(myVideo, ready);
   useEffect(() => {
     if (stream === null) return;
     stream.getAudioTracks().forEach((track) => {
@@ -47,6 +48,7 @@ export default function VideoComponent({ myVideo }: IProps) {
       if (!videoRefs.current) return;
       if (myVideo) {
         videoRefs.current!.srcObject = stream;
+        setReady(true);
       }
     } catch (e) {
       console.log(e);
@@ -55,8 +57,9 @@ export default function VideoComponent({ myVideo }: IProps) {
   useEffect(() => {
     try {
       if (!videoRefs.current) return;
-      if (!myVideo) {
+      if (!myVideo && peerStream) {
         videoRefs.current!.srcObject = peerStream;
+        setReady(true);
       }
     } catch (e) {
       console.log(e);
@@ -68,9 +71,9 @@ export default function VideoComponent({ myVideo }: IProps) {
         ref={videoRefs}
         autoPlay
         playsInline
-        style={{ display: videoRefs.current?.srcObject === null ? "none" : "" }}
+        style={{ display: ready ? "" : "none" }}
       />
-      {videoRefs.current?.srcObject ? null : (
+      {ready ? null : (
         <Container>
           <ProgressComponent />
         </Container>

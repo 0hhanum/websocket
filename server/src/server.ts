@@ -18,8 +18,11 @@ interface IIORoomPayload {
   roomName: string;
 }
 const app: express.Application = express();
+const path = require("path");
+// app.use("/public", express.static(__dirname + "/public"));
+app.use(express.static(path.join(__dirname, "/public/dist")));
 
-app.get("/", (req, res) => res.sendStatus(200));
+app.get("/", (req, res) => res.sendFile(__dirname, "/public/dist/index.html"));
 
 const httpServerForWS = http.createServer(app); // http 서버
 const httpServerForIO = http.createServer(app); // http 서버
@@ -50,7 +53,7 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
 
 const ioServer: SocketIO = new SocketIO(httpServerForIO, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: ["http://localhost:5173"],
     methods: ["GET", "POST"],
     credentials: true,
   },
