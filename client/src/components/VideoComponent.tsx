@@ -29,7 +29,10 @@ export default function VideoComponent({ myVideo }: IProps) {
     });
   }, [isMuted]);
   useEffect(() => {
-    console.log("cameraOff", isCameraOff);
+    if (stream === null) return;
+    stream.getVideoTracks().forEach((track) => {
+      track.enabled = !isCameraOff;
+    });
   }, [isCameraOff]);
   useEffect(() => {
     try {
