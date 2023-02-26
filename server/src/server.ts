@@ -91,12 +91,19 @@ ioServer.on("connection", (socket) => {
     "enterRoom",
     (
       { roomName }: IIORoomPayload,
-      callback: (roomMemberCount: number) => void
+      callback: (roomMemberCount: number, isAvailable: boolean) => void
     ) => {
-      socket.join(roomName);
-      callback(getRoomParticipantsCount(roomName));
-      socket.to(roomName).emit("joinRoom", getRoomParticipantsCount(roomName));
-      ioServer.sockets.emit("roomChanged", getPublicRooms());
+      const roomParticipantsCount = getRoomParticipantsCount(roomName);
+      if (roomParticipantsCount < 2) {
+        socket.join(roomName);
+        callback(roomParticipantsCount + 1, true);
+        socket
+          .to(roomName)
+          .emit("joinRoom", getRoomParticipantsCount(roomName));
+        ioServer.sockets.emit("roomChanged", getPublicRooms());
+      } else {
+        callback(roomParticipantsCount, false);
+      }
     }
   );
   // before completely disconnect
@@ -114,16 +121,24 @@ ioServer.on("connection", (socket) => {
   );
   socket.on(
     "moveRoom",
-    (targetRoomName: string, currentRoomName: string, callback: () => void) => {
-      socket.leave(currentRoomName);
-      socket.join(targetRoomName);
-      socket
-        .to(targetRoomName)
-        .emit("joinRoom", getRoomParticipantsCount(targetRoomName));
-      socket
-        .to(currentRoomName)
-        .emit("leaveRoom", getRoomParticipantsCount(currentRoomName) - 1);
-      callback();
+    (
+      targetRoomName: string,
+      currentRoomName: string,
+      callback: (isAvailable: boolean) => void
+    ) => {
+      if (getRoomParticipantsCount(targetRoomName) < 2) {
+        socket.leave(currentRoomName);
+        socket.join(targetRoomName);
+        socket
+          .to(targetRoomName)
+          .emit("joinRoom", getRoomParticipantsCount(targetRoomName));
+        socket
+          .to(currentRoomName)
+          .emit("leaveRoom", getRoomParticipantsCount(currentRoomName) - 1);
+        callback(true);
+      } else {
+        callback(false);
+      }
     }
   );
   socket.on("offer", (offer: any, roomName: string) => {

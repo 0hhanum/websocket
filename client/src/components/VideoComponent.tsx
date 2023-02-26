@@ -30,7 +30,6 @@ export default function VideoComponent({ myVideo }: IProps) {
   const stream = useRecoilValue(ioStream);
   const peerStream = useRecoilValue(ioPeerStream);
   const [ready, setReady] = useState(false);
-  console.log(myVideo, ready);
   useEffect(() => {
     if (stream === null) return;
     stream.getAudioTracks().forEach((track) => {

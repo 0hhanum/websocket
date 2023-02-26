@@ -194,12 +194,20 @@ function SocketIOPage() {
     });
   }, [currentRoom]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
-    socket.emit("enterRoom", { roomName }, (roomMemberCount: number) => {
-      addMessage(
-        `enter to room ${roomName} - current participants: ${roomMemberCount}`
-      );
-      setCurrentRoom(roomName);
-    }); // can send object & eventName!
+    socket.emit(
+      "enterRoom",
+      { roomName },
+      (roomMemberCount: number, isAvailable: boolean) => {
+        if (isAvailable) {
+          addMessage(
+            `enter to room ${roomName} - current participants: ${roomMemberCount}`
+          );
+          setCurrentRoom(roomName);
+        } else {
+          alert("room is full");
+        }
+      }
+    ); // can send object & eventName!
   };
   const onChatValid: SubmitHandler<IChatForm> = ({ message, nickname }) => {
     if (nickname !== nicknameState) {
@@ -211,11 +219,20 @@ function SocketIOPage() {
     resetField("message");
   };
   const moveRoom = (targetRoomName: string) => {
-    socket.emit("moveRoom", targetRoomName, currentRoom, () => {
-      setCurrentRoom(targetRoomName);
-      setMessages([]);
-      addMessage(`enter to room ${targetRoomName}`);
-    });
+    socket.emit(
+      "moveRoom",
+      targetRoomName,
+      currentRoom,
+      (available: boolean) => {
+        if (available) {
+          setCurrentRoom(targetRoomName);
+          setMessages([]);
+          addMessage(`enter to room ${targetRoomName}`);
+        } else {
+          alert("room is full");
+        }
+      }
+    );
   };
   function addMessage(message: string) {
     setMessages((current) => current.concat(message));
