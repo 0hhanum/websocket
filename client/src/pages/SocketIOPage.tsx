@@ -131,8 +131,10 @@ function SocketIOPage() {
   };
   function addMessage(message: string) {
     setMessages((current) => current.concat(message));
-    messageSection.current!.scrollTop =
-      messageSection.current?.scrollHeight || 0;
+    if (messageSection.current) {
+      messageSection.current.scrollTop =
+        messageSection.current?.scrollHeight || 0;
+    }
   }
   return (
     <>

@@ -22,6 +22,28 @@ export default function VideoComponent({ myVideo }: IProps) {
   const isMuted = useRecoilValue(ioIsMuted);
   const isCameraOff = useRecoilValue(ioIsCameraOff);
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [peerConnection, setPeerConnection] =
+    useState<RTCPeerConnection | null>(null);
+  const getMedia = async () => {
+    const myStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "user",
+      },
+      audio: true,
+    });
+    videoRefs.current!.srcObject = myStream;
+    setStream(myStream);
+  };
+  const createConnection = async () => {
+    const peerConnection = new RTCPeerConnection();
+    setPeerConnection(peerConnection);
+    if (stream !== null) {
+      stream.getTracks().forEach((track) => {
+        // audio track, video track
+        peerConnection.addTrack(track, stream);
+      });
+    }
+  };
   useEffect(() => {
     if (stream === null) return;
     stream.getAudioTracks().forEach((track) => {
@@ -38,20 +60,22 @@ export default function VideoComponent({ myVideo }: IProps) {
     try {
       if (!videoRefs.current) return;
       if (myVideo) {
-        navigator.mediaDevices
-          .getUserMedia({
-            video: true,
-            audio: true,
-          })
-          .then((e) => {
-            videoRefs.current!.srcObject = e;
-            setStream(e);
-          });
+        getMedia();
       }
     } catch (e) {
       console.log(e);
     }
   }, [videoRefs]);
+  useEffect(() => {
+    try {
+      if (!stream) return;
+      if (stream) {
+        createConnection();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, [stream]);
   return (
     <>
       <Video
