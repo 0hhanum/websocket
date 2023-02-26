@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useRecoilState } from "recoil";
 import { io } from "socket.io-client";
@@ -81,10 +81,10 @@ function SocketIOPage() {
   const [isHookAdded, setIsHookAdded] = useRecoilState(ioIsHookAdded);
   const [isMuted, setIsMuted] = useRecoilState(ioIsMuted);
   const [isCameraOff, setIsCameraOff] = useRecoilState(ioIsCameraOff);
-
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
+  const messageSection = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!isHookAdded) {
       socket.on("joinRoom", (roomMemberCount: number) => {
@@ -131,13 +131,15 @@ function SocketIOPage() {
   };
   function addMessage(message: string) {
     setMessages((current) => current.concat(message));
+    messageSection.current!.scrollTop =
+      messageSection.current?.scrollHeight || 0;
   }
   return (
     <>
       {socket.connected ? (
         <div>
           {currentRoom ? (
-            <form onSubmit={handleSubmit(onChatValid)}>
+            <>
               <Section>
                 <section>
                   <ul>
@@ -182,7 +184,7 @@ function SocketIOPage() {
                     </VideoCtrlBtn>
                   </div>
                 </VideoSection>
-                <section>
+                <section ref={messageSection}>
                   <ul>
                     {messages.map((message, i) => (
                       <li key={i}>{message}</li>
@@ -190,24 +192,26 @@ function SocketIOPage() {
                   </ul>
                 </section>
               </Section>
-              <div style={{ display: "flex" }}>
-                <input
-                  {...register("nickname", { required: true })}
-                  type="text"
-                  placeholder="choose a nickname"
-                  style={{ width: "20%", marginRight: "20px" }}
-                />
-                <input
-                  {...register("message", {
-                    required: true,
-                  })}
-                  type="text"
-                  autoComplete="off"
-                  placeholder="write a message"
-                />
-              </div>
-              <button>Send</button>
-            </form>
+              <form onSubmit={handleSubmit(onChatValid)}>
+                <div style={{ display: "flex" }}>
+                  <input
+                    {...register("nickname", { required: true })}
+                    type="text"
+                    placeholder="choose a nickname"
+                    style={{ width: "20%", marginRight: "20px" }}
+                  />
+                  <input
+                    {...register("message", {
+                      required: true,
+                    })}
+                    type="text"
+                    autoComplete="off"
+                    placeholder="write a message"
+                  />
+                </div>
+                <button>Send</button>
+              </form>
+            </>
           ) : (
             <form onSubmit={handleRoomSubmit(onRoomValid)}>
               <input

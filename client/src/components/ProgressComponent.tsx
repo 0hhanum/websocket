@@ -21,7 +21,7 @@ export default function ProgressComponent() {
         width={50}
         height={50}
         viewBox="0 0 80 50"
-        enable-background="new 0 0 0 0"
+        enableBackground="new 0 0 0 0"
         xmlSpace="preserve"
       >
         <circle fill="#fff" stroke="none" cx="20" cy="25" r="6">
