@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRecoilValue } from "recoil";
 import styled from "styled-components";
 import { ioIsCameraOff, ioIsMuted } from "../atom";
+import ProgressComponent from "./ProgressComponent";
 
 interface IProps {
   myVideo: boolean;
@@ -10,6 +11,11 @@ const Video = styled.video`
   object-fit: cover;
   border-radius: 5px;
   width: 45%;
+`;
+const Container = styled.div`
+  border-radius: 5px;
+  width: 45% !important;
+  height: auto !important;
 `;
 export default function VideoComponent({ myVideo }: IProps) {
   const videoRefs = useRef<HTMLVideoElement>(null);
@@ -29,7 +35,7 @@ export default function VideoComponent({ myVideo }: IProps) {
     try {
       if (!videoRefs.current) return;
       if (myVideo) {
-        const myStream = navigator.mediaDevices
+        navigator.mediaDevices
           .getUserMedia({
             video: true,
             audio: true,
@@ -43,5 +49,19 @@ export default function VideoComponent({ myVideo }: IProps) {
       console.log(e);
     }
   }, [videoRefs]);
-  return <Video ref={videoRefs} autoPlay playsInline />;
+  return (
+    <>
+      <Video
+        ref={videoRefs}
+        autoPlay
+        playsInline
+        style={{ display: stream === null ? "none" : "" }}
+      />
+      {stream === null ? (
+        <Container>
+          <ProgressComponent />
+        </Container>
+      ) : null}
+    </>
+  );
 }
