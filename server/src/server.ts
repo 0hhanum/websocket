@@ -129,6 +129,9 @@ ioServer.on("connection", (socket) => {
   socket.on("answer", (answer: any, roomName: string) => {
     socket.to(roomName).emit("answer", answer);
   });
+  socket.on("ice", (ice: any, roomName: string) => {
+    socket.to(roomName).emit("ice", ice);
+  });
   socket.on("getRooms", (callback: (rooms: string[]) => void) => {
     callback(getPublicRooms());
   });

@@ -11,6 +11,7 @@ import {
   ioMessages,
   ioNickName,
   ioPeerConnection,
+  ioPeerStream,
   ioRooms,
   ioStream,
 } from "../atom";
@@ -85,6 +86,7 @@ function SocketIOPage() {
   const [isMuted, setIsMuted] = useRecoilState(ioIsMuted);
   const [isCameraOff, setIsCameraOff] = useRecoilState(ioIsCameraOff);
   const [stream, setStream] = useRecoilState(ioStream);
+  const [peerStream, setPeerStream] = useRecoilState(ioPeerStream);
   const [peerConnection, setPeerConnection] = useRecoilState(ioPeerConnection);
 
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
@@ -124,6 +126,9 @@ function SocketIOPage() {
       peerConnection.setLocalDescription(offer);
       socket.emit("offer", offer, currentRoom);
     }
+  };
+  const iceEventListener = (data: RTCPeerConnectionIceEvent) => {
+    socket.emit("ice", data.candidate, currentRoom);
   };
   useEffect(() => {
     getStream();
@@ -166,6 +171,14 @@ function SocketIOPage() {
     });
     socket.on("answer", (answer: RTCSessionDescriptionInit) => {
       peerConnection?.setRemoteDescription(answer);
+    });
+    socket.on("ice", (ice: RTCIceCandidate) => {
+      peerConnection?.addIceCandidate(ice);
+    });
+    peerConnection?.removeEventListener("icecandidate", iceEventListener);
+    peerConnection?.addEventListener("icecandidate", iceEventListener);
+    peerConnection?.addEventListener("track", ({ streams }: RTCTrackEvent) => {
+      setPeerStream(streams[0]);
     });
   }, [currentRoom]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {

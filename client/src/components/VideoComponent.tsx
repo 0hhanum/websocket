@@ -1,7 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { ioIsCameraOff, ioIsMuted, ioPeerConnection, ioStream } from "../atom";
+import {
+  ioIsCameraOff,
+  ioIsMuted,
+  ioPeerConnection,
+  ioPeerStream,
+  ioStream,
+} from "../atom";
 import ProgressComponent from "./ProgressComponent";
 
 interface IProps {
@@ -22,6 +28,7 @@ export default function VideoComponent({ myVideo }: IProps) {
   const isMuted = useRecoilValue(ioIsMuted);
   const isCameraOff = useRecoilValue(ioIsCameraOff);
   const stream = useRecoilValue(ioStream);
+  const peerStream = useRecoilValue(ioPeerStream);
 
   useEffect(() => {
     if (stream === null) return;
@@ -45,20 +52,29 @@ export default function VideoComponent({ myVideo }: IProps) {
       console.log(e);
     }
   }, [videoRefs]);
-
+  useEffect(() => {
+    try {
+      if (!videoRefs.current) return;
+      if (!myVideo) {
+        videoRefs.current!.srcObject = peerStream;
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, [peerStream]);
   return (
     <>
       <Video
         ref={videoRefs}
         autoPlay
         playsInline
-        style={{ display: stream === null ? "none" : "" }}
+        style={{ display: videoRefs.current?.srcObject === null ? "none" : "" }}
       />
-      {stream === null ? (
+      {videoRefs.current?.srcObject ? null : (
         <Container>
           <ProgressComponent />
         </Container>
-      ) : null}
+      )}
     </>
   );
 }

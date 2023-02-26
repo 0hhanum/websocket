@@ -44,3 +44,7 @@ export const ioStream = atom<MediaStream | null>({
   key: "ioStream",
   default: null,
 });
+export const ioPeerStream = atom<MediaStream | null>({
+  key: "ioPeerStream",
+  default: null,
+});
