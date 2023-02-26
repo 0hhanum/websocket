@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useRecoilState } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import { io } from "socket.io-client";
 import styled from "styled-components";
 import {
@@ -10,6 +10,7 @@ import {
   ioIsMuted,
   ioMessages,
   ioNickName,
+  ioPeerConnection,
   ioRooms,
 } from "../atom";
 import VideoComponent from "../components/VideoComponent";
@@ -81,15 +82,13 @@ function SocketIOPage() {
   const [isHookAdded, setIsHookAdded] = useRecoilState(ioIsHookAdded);
   const [isMuted, setIsMuted] = useRecoilState(ioIsMuted);
   const [isCameraOff, setIsCameraOff] = useRecoilState(ioIsCameraOff);
+  const peerConnection = useRecoilValue(ioPeerConnection);
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
   const messageSection = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!isHookAdded) {
-      socket.on("joinRoom", (roomMemberCount: number) => {
-        addMessage(`someone joined - current participants: ${roomMemberCount}`);
-      });
       socket.on("leaveRoom", (roomMemberCount: number) => {
         addMessage(`someone left - current participants: ${roomMemberCount}`);
       });
@@ -105,6 +104,16 @@ function SocketIOPage() {
       setValue("nickname", nicknameState);
     }
   }, [socket]);
+  useEffect(() => {
+    socket.off("joinRoom");
+    socket.on("joinRoom", async (roomMemberCount: number) => {
+      addMessage(`someone joined - current participants: ${roomMemberCount}`);
+      if (peerConnection !== null) {
+        const offer = await peerConnection.createOffer();
+        console.log(offer);
+      }
+    });
+  }, [peerConnection]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
     socket.emit("enterRoom", { roomName }, (roomMemberCount: number) => {
       addMessage(
@@ -219,7 +228,7 @@ function SocketIOPage() {
               <input
                 {...roomRegister("roomName", { required: true })}
                 type="text"
-                placeholder="Enter the roomname"
+                placeholder="Enter the room name"
               />
               <button>Enter</button>
             </form>

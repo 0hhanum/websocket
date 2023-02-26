@@ -36,3 +36,7 @@ export const ioIsCameraOff = atom<boolean>({
   key: "isCameraOff",
   default: false,
 });
+export const ioPeerConnection = atom<RTCPeerConnection | null>({
+  key: "ioPeerConnection",
+  default: null,
+});

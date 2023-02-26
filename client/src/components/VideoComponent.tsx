@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { ioIsCameraOff, ioIsMuted } from "../atom";
+import { ioIsCameraOff, ioIsMuted, ioPeerConnection } from "../atom";
 import ProgressComponent from "./ProgressComponent";
 
 interface IProps {
@@ -22,8 +22,7 @@ export default function VideoComponent({ myVideo }: IProps) {
   const isMuted = useRecoilValue(ioIsMuted);
   const isCameraOff = useRecoilValue(ioIsCameraOff);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [peerConnection, setPeerConnection] =
-    useState<RTCPeerConnection | null>(null);
+  const [peerConnection, setPeerConnection] = useRecoilState(ioPeerConnection);
   const getMedia = async () => {
     const myStream = await navigator.mediaDevices.getUserMedia({
       video: {
@@ -35,12 +34,12 @@ export default function VideoComponent({ myVideo }: IProps) {
     setStream(myStream);
   };
   const createConnection = async () => {
-    const peerConnection = new RTCPeerConnection();
-    setPeerConnection(peerConnection);
+    const connection = new RTCPeerConnection();
     if (stream !== null) {
+      setPeerConnection(connection);
       stream.getTracks().forEach((track) => {
         // audio track, video track
-        peerConnection.addTrack(track, stream);
+        connection.addTrack(track, stream);
       });
     }
   };
