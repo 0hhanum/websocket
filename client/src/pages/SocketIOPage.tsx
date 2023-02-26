@@ -110,6 +110,21 @@ function SocketIOPage() {
       });
     }
   };
+  const onOffer = async (offer: RTCSessionDescriptionInit) => {
+    if (peerConnection) {
+      peerConnection.setRemoteDescription(offer);
+      const answer = await peerConnection.createAnswer();
+      peerConnection.setLocalDescription(answer);
+      socket.emit("answer", answer, currentRoom);
+    }
+  };
+  const emitOffer = async () => {
+    if (peerConnection) {
+      const offer = await peerConnection.createOffer();
+      peerConnection.setLocalDescription(offer);
+      socket.emit("offer", offer, currentRoom);
+    }
+  };
   useEffect(() => {
     getStream();
   }, []);
@@ -144,18 +159,13 @@ function SocketIOPage() {
     socket.off("offer");
     socket.on("joinRoom", async (roomMemberCount: number) => {
       addMessage(`someone joined - current participants: ${roomMemberCount}`);
-      if (peerConnection !== null) {
-        const offer = await peerConnection.createOffer();
-        console.log(offer);
-        peerConnection.setLocalDescription(offer);
-        socket.emit("offer", offer, currentRoom);
-      }
+      emitOffer();
     });
     socket.on("offer", (offer: RTCSessionDescriptionInit) => {
-      console.log(peerConnection);
-      if (peerConnection !== null) {
-        peerConnection.setRemoteDescription(offer);
-      }
+      onOffer(offer);
+    });
+    socket.on("answer", (answer: RTCSessionDescriptionInit) => {
+      peerConnection?.setRemoteDescription(answer);
     });
   }, [currentRoom]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
