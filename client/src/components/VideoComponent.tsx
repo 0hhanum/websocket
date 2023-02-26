@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRecoilState, useRecoilValue } from "recoil";
 import styled from "styled-components";
-import { ioIsCameraOff, ioIsMuted, ioPeerConnection } from "../atom";
+import { ioIsCameraOff, ioIsMuted, ioPeerConnection, ioStream } from "../atom";
 import ProgressComponent from "./ProgressComponent";
 
 interface IProps {
@@ -21,28 +21,8 @@ export default function VideoComponent({ myVideo }: IProps) {
   const videoRefs = useRef<HTMLVideoElement>(null);
   const isMuted = useRecoilValue(ioIsMuted);
   const isCameraOff = useRecoilValue(ioIsCameraOff);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [peerConnection, setPeerConnection] = useRecoilState(ioPeerConnection);
-  const getMedia = async () => {
-    const myStream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: "user",
-      },
-      audio: true,
-    });
-    videoRefs.current!.srcObject = myStream;
-    setStream(myStream);
-  };
-  const createConnection = async () => {
-    const connection = new RTCPeerConnection();
-    if (stream !== null) {
-      setPeerConnection(connection);
-      stream.getTracks().forEach((track) => {
-        // audio track, video track
-        connection.addTrack(track, stream);
-      });
-    }
-  };
+  const stream = useRecoilValue(ioStream);
+
   useEffect(() => {
     if (stream === null) return;
     stream.getAudioTracks().forEach((track) => {
@@ -59,22 +39,13 @@ export default function VideoComponent({ myVideo }: IProps) {
     try {
       if (!videoRefs.current) return;
       if (myVideo) {
-        getMedia();
+        videoRefs.current!.srcObject = stream;
       }
     } catch (e) {
       console.log(e);
     }
   }, [videoRefs]);
-  useEffect(() => {
-    try {
-      if (!stream) return;
-      if (stream) {
-        createConnection();
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }, [stream]);
+
   return (
     <>
       <Video

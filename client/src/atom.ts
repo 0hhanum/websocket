@@ -40,3 +40,7 @@ export const ioPeerConnection = atom<RTCPeerConnection | null>({
   key: "ioPeerConnection",
   default: null,
 });
+export const ioStream = atom<MediaStream | null>({
+  key: "ioStream",
+  default: null,
+});

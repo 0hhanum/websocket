@@ -12,7 +12,9 @@ import {
   ioNickName,
   ioPeerConnection,
   ioRooms,
+  ioStream,
 } from "../atom";
+import ProgressComponent from "../components/ProgressComponent";
 import VideoComponent from "../components/VideoComponent";
 
 interface IRoomForm {
@@ -82,11 +84,44 @@ function SocketIOPage() {
   const [isHookAdded, setIsHookAdded] = useRecoilState(ioIsHookAdded);
   const [isMuted, setIsMuted] = useRecoilState(ioIsMuted);
   const [isCameraOff, setIsCameraOff] = useRecoilState(ioIsCameraOff);
-  const peerConnection = useRecoilValue(ioPeerConnection);
+  const [stream, setStream] = useRecoilState(ioStream);
+  const [peerConnection, setPeerConnection] = useRecoilState(ioPeerConnection);
+
   const { register: roomRegister, handleSubmit: handleRoomSubmit } =
     useForm<IRoomForm>();
   const { register, handleSubmit, resetField, setValue } = useForm<IChatForm>();
   const messageSection = useRef<HTMLElement>(null);
+  const getStream = async () => {
+    const myStream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: "user",
+      },
+      audio: true,
+    });
+    setStream(myStream);
+  };
+  const createConnection = async () => {
+    const connection = new RTCPeerConnection();
+    if (stream !== null) {
+      setPeerConnection(connection);
+      stream.getTracks().forEach((track) => {
+        // audio track, video track
+        connection.addTrack(track, stream);
+      });
+    }
+  };
+  useEffect(() => {
+    getStream();
+  }, []);
+  useEffect(() => {
+    try {
+      if (stream) {
+        createConnection();
+      }
+    } catch (e) {
+      console.log(e);
+    }
+  }, [stream]);
   useEffect(() => {
     if (!isHookAdded) {
       socket.on("leaveRoom", (roomMemberCount: number) => {
@@ -106,14 +141,23 @@ function SocketIOPage() {
   }, [socket]);
   useEffect(() => {
     socket.off("joinRoom");
+    socket.off("offer");
     socket.on("joinRoom", async (roomMemberCount: number) => {
       addMessage(`someone joined - current participants: ${roomMemberCount}`);
       if (peerConnection !== null) {
         const offer = await peerConnection.createOffer();
         console.log(offer);
+        peerConnection.setLocalDescription(offer);
+        socket.emit("offer", offer, currentRoom);
       }
     });
-  }, [peerConnection]);
+    socket.on("offer", (offer: RTCSessionDescriptionInit) => {
+      console.log(peerConnection);
+      if (peerConnection !== null) {
+        peerConnection.setRemoteDescription(offer);
+      }
+    });
+  }, [currentRoom]);
   const onRoomValid: SubmitHandler<IRoomForm> = ({ roomName }) => {
     socket.emit("enterRoom", { roomName }, (roomMemberCount: number) => {
       addMessage(
@@ -147,7 +191,7 @@ function SocketIOPage() {
   }
   return (
     <>
-      {socket.connected ? (
+      {socket.connected && peerConnection ? (
         <div>
           {currentRoom ? (
             <>
@@ -235,7 +279,7 @@ function SocketIOPage() {
           )}
         </div>
       ) : (
-        <h2>Something went wrong. Refresh the browser -_-</h2>
+        <ProgressComponent />
       )}
     </>
   );
