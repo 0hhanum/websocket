@@ -35,13 +35,17 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
   socket["nickname"] = "Anonymous";
   sockets.push(socket);
   socket.on("message", (msg: MessageEvent) => {
-    const { nickname, message }: IWSMessage = JSON.parse(msg.toString());
-    socket.nickname = nickname;
-    sockets.forEach((socket) => {
-      if (socket.nickname !== nickname) {
-        socket.send(`${nickname}: ${message}`);
-      }
-    });
+    try {
+      const { nickname, message }: IWSMessage = JSON.parse(msg.toString());
+      socket.nickname = nickname;
+      sockets.forEach((socket) => {
+        if (socket.nickname !== nickname) {
+          socket.send(`${nickname}: ${message}`);
+        }
+      });
+    } catch (e) {
+      console.log(e);
+    }
   });
   socket.on("close", () => {
     console.log("WS disconnected --- X");
