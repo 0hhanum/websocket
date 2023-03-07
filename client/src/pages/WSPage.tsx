@@ -7,7 +7,11 @@ interface IForm {
   message: string;
   nickname: string;
 }
-const socket: WebSocket = new WebSocket("ws://localhost:3000");
+const socketProtocol = window.location.protocol === "https:" ? "wss" : "ws"; // dev / prod
+const isProd = process.env.NODE_ENV === "production";
+const socket: WebSocket = new WebSocket(
+  `${socketProtocol}://${window.location.hostname}${isProd ? "" : ":3000"}`
+);
 export function WSPage() {
   const [isConnected, setIsConnected] = useState(false);
   const [messages, setMessages] = useRecoilState(wsMessages);
