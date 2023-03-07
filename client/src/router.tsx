@@ -10,7 +10,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        element: <WSPage />,
+        element: <SocketIOPage />,
       },
       {
         path: "/ws",

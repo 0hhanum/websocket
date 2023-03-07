@@ -74,9 +74,14 @@ const VideoCtrlBtn = styled.button<{ isOff: boolean }>`
     height: 25px;
   }
 `;
-const socket = io("http://localhost:3001", {
-  withCredentials: true,
-});
+const socketProtocol = window.location.protocol === "https:" ? "wss" : "ws"; // dev / prod
+const isProd = process.env.NODE_ENV === "production";
+const socket = io(
+  `${socketProtocol}://${window.location.hostname}${isProd ? "" : ":3000"}`,
+  {
+    withCredentials: true,
+  }
+);
 function SocketIOPage() {
   const [messages, setMessages] = useRecoilState(ioMessages);
   const [currentRoom, setCurrentRoom] = useRecoilState(ioCurrentRoom);

@@ -2,8 +2,7 @@ import WebSocket, { MessageEvent } from "ws";
 import http from "http";
 import express from "express";
 import { Server as SocketIO } from "socket.io";
-const WS_PORT: number = 3000;
-const IO_PORT: number = 3001;
+const PORT: number = 3000;
 interface IWSMessage {
   message: string;
   nickname: string;
@@ -24,10 +23,9 @@ app.use(express.static(path.join(__dirname, "/public/dist")));
 
 app.get("/", (req, res) => res.sendFile(__dirname, "/public/dist/index.html"));
 
-const httpServerForWS = http.createServer(app); // http 서버
-const httpServerForIO = http.createServer(app); // http 서버
+const httpServer = http.createServer(app); // http 서버
 
-const wsServer = new WebSocket.Server({ server: httpServerForWS }); // ws(websocket) 서버
+const wsServer = new WebSocket.Server({ server: httpServer }); // ws(websocket) 서버
 // 이렇게 함으로써 동일 포트에 http / ws 서버를 함께 구동
 // 필수 사항은 아니며 ws 서버만 구동해도 무관
 
@@ -51,7 +49,7 @@ wsServer.on("connection", (socket: ISocket, request: http.IncomingMessage) => {
   });
 });
 
-const ioServer: SocketIO = new SocketIO(httpServerForIO, {
+const ioServer: SocketIO = new SocketIO(httpServer, {
   cors: {
     origin: ["http://localhost:5173", "http://localhost:3000"],
     methods: ["GET", "POST"],
@@ -160,9 +158,6 @@ ioServer.on("connection", (socket) => {
     }
   );
 });
-httpServerForWS.listen(WS_PORT, () =>
-  console.log(`Listening on PORT: http://localhost:${WS_PORT}`)
-);
-httpServerForIO.listen(IO_PORT, () =>
-  console.log(`Listening on PORT: http://localhost:${IO_PORT}`)
+httpServer.listen(PORT, () =>
+  console.log(`Listening on PORT: http://localhost:${PORT}`)
 );
